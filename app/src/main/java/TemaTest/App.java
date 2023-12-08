@@ -3,11 +3,703 @@
  */
 package TemaTest;
 
+import java.sql.Array;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Objects;
+
 public class App {
-    
-public App() {/* compiled code */}
+    //pentru a retine datele aplicatiei cream 3 arraylist-uri.
+    private static ArrayList<Utilizator> utilizatori; //lista utilizatorilor din aplicatie
+    private static ArrayList<Postare> postari; //lista postarilor din aplicatie
+    private static ArrayList<Comentariu> comentarii; //lista comentariilor din aplicatie
+
+    public App() {
+        /* compiled code */
+        /*constructorul fara parametrii al clasei App unde instantiem listele de utilizatori,
+          postari si comentarii*/
+        if(utilizatori == null) utilizatori = new ArrayList<Utilizator>();
+        if(postari == null) postari = new ArrayList<Postare>();
+        if(comentarii == null) comentarii = new ArrayList<Comentariu>();
+    }
+    public static String extrageUSauP(String username) {
+        /*aceasta metoda va extrage username-ul utilizatorului sau parola deoarece
+        amandoua string-urile sunt de forma -u/-p <'username'/'parola'>
+        */
+        return username.substring(3);
+    }
+    /*public static String extrageFollower(String username) {
+        /*aceasta metoda va extrage username-ul utilizatorului la care vrem sa aflam lista de followers
+        //string-ul este de forma -username 'my-username'
+
+        return username.substring(10);
+    }*/
+
+
+    public static Utilizator gasesteUtilizator(String username) {
+        /*-am creat o metoda care gaseste daca un utilizator este in lista sau nu
+        in functie de numele de utilizator
+         -daca exista, atunci va fi returnat de functie, altfel functia va returna null*/
+        for(Utilizator u : utilizatori) {
+            if(u.getUsername().equals(username)) {
+                return u;
+            }
+        }
+        return null;
+    }
+    public static boolean dejaApreciata(Postare post, Utilizator user) {
+        //verifica daca o postare este deja apreciata de un utilizator
+        for(Postare p : user.postariApreciate) {
+            //parcurgem lista de postari apreciate de utilizator
+            // si daca gasim postarea data drept parametru returnam true, altfel returnam false
+            if(post.getId() == p.getId()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean dejaApreciat(Comentariu com, Utilizator user) {
+        //verifica daca un comentariu este deja apreciat de un utilizator
+        for(Comentariu c : user.comentariiApreciate) {
+            //parcurgem lista de comentarii apreciate de utilizator
+            // si daca gasim comentariul dat drept parametru returnam true, altfel returnam false
+            if(com.getIdCom() == com.getIdCom()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void cleanup() {
+        //stergem toate datele din aplicatie, anume utilizatorii, comentariile si postarile
+        utilizatori = null;
+        comentarii = null;
+        postari = null;
+        Postare.resetId();
+        Comentariu.resetIdComent();
+    }
+    public static String extrageText(String text) {
+        //cream aceasta metoda pentru a extrage textul postat de utilizator
+        //initial String-ul vine in formatul -text 'blabla'
+        return text.substring(6); //extragem textul dintre apostroafe
+    }
+
+    public static  boolean credentialeGresite(String username, String parola) {
+        //aceasta metoda returneaza daca username-ul sau parola introduce de utilizator sunt gresite
+        if(gasesteUtilizator(username) == null) {
+            //nu gasim numele de utilizator in lista de utilizatori ai aplicatiei
+            return false;
+        }
+        //daca gasim utilizatorul,verificam daca parola din sistem este identica cu cea data drept parametru
+        return Objects.requireNonNull(gasesteUtilizator(username)).getParola().equals(parola);
+    }
+    public static int extrageId(String idText) {
+        //cream aceasta metoda pentru a extrage id-ul postarii
+        //initial String-ul vine in formatul -id 'id_post1'
+        int l = idText.length();
+        return Integer.parseInt(idText.substring(5, l - 1));
+    }
+    public static int extragePostId(String idText) {
+        //cream aceasta metoda pentru a extrage id-ul postarii
+        //initial String-ul vine in formatul -post-id 'id_post1'
+        int l = idText.length();
+        return Integer.parseInt(idText.substring(10, l - 1));
+    }
+
+    public static Postare gasestePostId(String idText) {
+        /*cautam in lista de postari daca avem o postare cu id-ul dat
+        in caz afirmativ returnam postarea, altfel returnam null
+        */
+        for(Postare post : postari) {
+            if(post.getId() == extrageId(idText)) {
+                return post;
+            }
+        }
+        return null;
+    }
+    //diferenta dintre cele doua metoda este ca prima gaseste postarea cu id-ul dat in formatul -id 'id_post'
+    //iar cea de-a doua pe cea cu id-ul dat in formatul -post-id 'id_post'
+    public static Postare gasestePostLikeId(String idText) {
+        /*cautam in lista de postari daca avem o postare cu id-ul dat
+        in caz afirmativ returnam postarea, altfel returnam null
+        */
+        for(Postare post : postari) {
+            if(post.getId() == extragePostId(idText)) {
+                return post;
+            }
+        }
+        return null;
+    }
+
+    public static Comentariu gasesteComId(String idText) {
+        /*cautam in lista de comentarii daca avem un comentariu cu id-ul dat
+        in caz afirmativ returnam comentariu, altfel returnam null
+        */
+        for(Comentariu com : comentarii) {
+            if(com.getIdCom() == extrageId(idText)) {
+                return com;
+            }
+        }
+        return null;
+    }
+    //diferenta dintre cele doua metoda este ca prima gaseste comentariul cu id-ul dat in formatul -id 'id_com'
+    //iar cea de-a doua pe cel cu id-ul dat in formatul -comment-id 'id_com'
+    public static Comentariu gasesteComLikeId(String idText) {
+        /*cautam in lista de comentarii daca avem un comentariu cu id-ul dat
+        in caz afirmativ returnam comentariu, altfel returnam null
+        */
+        for(Comentariu com : comentarii) {
+            if(com.getIdCom() == extrageComLikeId(idText)) {
+                return com;
+            }
+        }
+        return null;
+    }
+    public static int extrageComLikeId(String idComLikeText) {
+        //cream aceasta metoda pentru a extrage id-ul comentariului liked/unliked
+        //initial String-ul vine in formatul -comment-id 'id_post1'
+        int l = idComLikeText.length();
+        return Integer.parseInt(idComLikeText.substring(13, l - 1));
+    }
+    public static String extrageUsername(String username1) {
+        //aceasta metoda va extrage username-ul utilizatorului pe care vrem sa il urmarim
+        //string-ul username1 va fi in formatul -username 'nume_utilizator'
+        return username1.substring(10);
+    }
 
     public static void main(java.lang.String[] strings) {
-        System.out.print("Hello world!");
+        App app = new App(); //cream un obiect de tip aplicatie
+        if (strings == null) {
+            //dummy test
+            System.out.print("Hello world!");
+        } else if(strings[0].equals("-cleanup-all")) {
+            //stergem datele din aplicatie si afisam mesajul corespunzator
+            cleanup();
+            System.out.println("{ 'status' : 'ok', 'message' : 'Cleanup finished successfully'}");
+        } else if(strings[0].equals("-create-user")) {
+            if(strings.length == 1) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Please provide username'}");
+            } else if(strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Please provide password'}");
+            } else if (gasesteUtilizator(extrageUSauP(strings[1])) == null) { //utilizatorul nu se afla in sistem
+                System.out.println("{ 'status' : 'ok', 'message' : 'User created successfully'}");
+                //cream un utilizator nou si apelam constructorul cu parametrii al clasei Utilizator
+                Utilizator utilNou = new Utilizator(extrageUSauP(strings[1]), extrageUSauP(strings[2]));
+                utilizatori.add(utilNou); //adaugam la lista de utilizatori noul utilizator
+            } else {
+                System.out.println("{ 'status' : 'error', 'message' : 'User already exists'}");
+            }
+        } else if(strings[0].equals("-create-post")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(!credentialeGresite(extrageUSauP(strings[1]), extrageUSauP(strings[2]))) {
+                //utilizatorul a introdus date gresite
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            }else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No text provided'}");
+            } else if(extrageText(strings[3]).length() > 300) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Post text length exceeded'}");
+            } else {
+                System.out.println("{ 'status' : 'ok', 'message' : 'Post added successfully'}");
+                //cream un obiect de tip postare cu textul si username-ul persoanei
+                // care a creat postarea dat drept parametrii
+                Postare postNou = new Postare(extrageText(strings[3]), extrageUSauP(strings[1]));
+                //cand apelam constructorul cu parametru se modifica si id-ul postarii
+                postari.add(postNou); //adaugam noua postare la lista de postari
+                Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).postariFacute.add(postNou);
+            }
+        } else if(strings[0].equals("-delete-post-by-id")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1])))
+                    .getParola().equals(extrageUSauP(strings[2]))) {
+                //utilizatorul a introdus credentialele gresite
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No identifier was provided'}");
+            } else if(gasestePostId(strings[3]) == null) { //postarea nu este gasita in lista
+                System.out.println("{ 'status' : 'error', 'message' : 'The identifier was not valid'}");
+            } else {
+                System.out.println("{ 'status' : 'ok', 'message' : 'Post deleted successfully'}");
+                postari.remove(gasestePostId(strings[3])); // stergem postarea din lista
+                Postare.count--; // se micsoreaza numarul total de postari
+            }
+        }else if(strings[0].equals("-follow-user-by-username")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No username to follow was provided'}");
+            } else if(gasesteUtilizator(extrageUsername(strings[3])) == null
+                    || Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1])))
+                    .cautaUrmaritor(gasesteUtilizator(extrageUsername(strings[3])))) {
+                //nu gasim utilizatorul curent in lista de utilizatori sau urmareste deja utilizator la care doreste
+                //sa ii dea follow
+                System.out.println("{ 'status' : 'error', 'message' : 'The username to follow was not valid'}");
+            } else {
+                System.out.println("{ 'status' : 'ok', 'message' : 'Operation executed successfully'}");
+                Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1])))
+                        .follow(gasesteUtilizator(extrageUsername(strings[3])));
+                Objects.requireNonNull(gasesteUtilizator(extrageUsername(strings[3]))).cresteFollowers();
+                //creste numarul de followers
+            }
+        }else if(strings[0].equals("-unfollow-user-by-username")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No username to unfollow was provided'}");
+            } else if(gasesteUtilizator(extrageUsername(strings[3])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1])))
+                    .cautaUrmaritor(gasesteUtilizator(extrageUsername(strings[3])))) {
+                //nu gasim utilizatorul curent in lista de utilizatori sau nu urmareste utilizatorul care vrea sa ii dea
+                //unfollow
+                System.out.println("{ 'status' : 'error', 'message' : 'The username to unfollow was not valid'}");
+            } else {
+                Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1])))
+                        .unfollow(gasesteUtilizator(extrageUsername(strings[3])));
+                Objects.requireNonNull(gasesteUtilizator(extrageUsername(strings[3]))).scadeFollowers();
+                //scade numarul de followers
+                System.out.println("{ 'status' : 'ok', 'message' : ' Operation executed successfully'}");
+            }
+        }else if(strings[0].equals("-like-post")) {
+            //–like-post -u ‘my_username’ -p ‘my_password’ -post-id ‘post_id1’
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No post identifier to like was provided'}");
+            } else if(gasestePostLikeId(strings[3]) == null) { //nu gasim postarea in lista
+                System.out.println("{ 'status' : 'error', 'message' : 'The post identifier to like was not valid'}");
+            }else if (dejaApreciata(gasestePostLikeId(strings[3]),
+                    Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))))){
+                //postarea este deja apreciata de utilizator
+                System.out.println("{ 'status' : 'error', 'message' : 'The post identifier to like was not valid'}");
+            } else{
+                System.out.println("{ 'status' : 'ok', 'message' : 'Operation executed successfully'}");
+                Objects.requireNonNull(gasestePostLikeId(strings[3])).like();
+                Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).postariApreciate
+                        .add(gasestePostLikeId(strings[3]));
+                //adaugam postarea la lista de postari apreciate ale utilizatorului
+                Objects.requireNonNull(gasesteUtilizator(Objects.requireNonNull(gasestePostLikeId(strings[3]))
+                        .getUsername())).cresteNrLikePost();
+                //creste numarul de like-uri la postarea postata
+
+            }
+        }else if(strings[0].equals("-unlike-post")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No post identifier to unlike was provided'}");
+            } else if(gasestePostLikeId(strings[3]) == null) {
+                System.out.println("{ 'status' : 'error', 'message' : 'The post identifier to unlike was not valid'}");
+            }else if(!dejaApreciata(gasestePostLikeId(strings[3]),
+                    Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'The post identifier to unlike was not valid'}");
+            } else{
+                System.out.println("{ 'status' : 'ok', 'message' : 'Operation executed successfully'}");
+                Objects.requireNonNull(gasestePostLikeId(strings[3])).unlike();
+                //scade numarul de like-uri la postarii
+                Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).postariApreciate
+                        .remove(gasestePostLikeId(strings[3]));
+                //scaotem postarea din lista de postari apreciate de catre utilizator
+                Objects.requireNonNull(gasesteUtilizator(Objects.requireNonNull(gasestePostLikeId(strings[3]))
+                        .getUsername())).scadeNrLikePost();
+                //scade numarul de like-uri asociate postarilor facute de un utilizator
+            }
+        }else if(strings[0].equals("-comment-post")) {
+            //–comment-post -u ‘my_username’ -p ‘my_password’ –post-id ‘post_id1‘ -text ‘text1'
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No text provided'}");
+            } else if(extrageText(strings[4]).length() > 300) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Comment text length exceeded'}");
+            } else {
+                System.out.println("{ 'status' : 'ok', 'message' : 'Comment added successfully'}");
+                //cream un comentariu nou la postarea cu id dat drept parametru, cu un text dat
+                Comentariu comNou = new Comentariu(extragePostId(strings[3]),
+                        extrageText(strings[4]), extrageUSauP(strings[1]));
+                comentarii.add(comNou); // adaugam comentariul la lista de comentarii
+                Objects.requireNonNull(gasestePostLikeId(strings[3])).cresteNrCom();
+                //creste numarul de comentarii la postarea respectiva
+
+            }
+        }else if(strings[0].equals("-delete-comment-by-id")) {
+            if (strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if (gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if (strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No identifier was provided'}");
+            }else if(comentarii == null) {
+                System.out.println("{ 'status' : 'error', 'message' : 'The identifier was not valid'}");
+            }else if(gasesteComId(strings[3]) == null || !Objects.requireNonNull(gasesteComId(strings[3]))
+                    .getUsername().equals(extrageUSauP(strings[1]))) {
+                //numai utilizatorul care a facut comentariul poate sa il stearga
+                System.out.println("{ 'status' : 'error', 'message' : 'The identifier was not valid'}");
+            } else {
+                System.out.println("{ 'status' : 'ok', 'message' : 'Operation executed successfully'}");
+                comentarii.remove(gasesteComId(strings[3])); //scoate comentariul din sistem
+                Objects.requireNonNull(gasestePostId(strings[3])).scadeNrCom();
+                //scade numarul de comentarii ale postarii respective
+            }
+        } else if(strings[0].equals("-like-comment")) {
+            //–like-comment -u ‘my_username’ -p ‘my_password’ -comment-id ‘comment_id1’
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No comment identifier to like was provided'}");
+            } else if(gasesteComLikeId(strings[3]) == null) {
+                System.out.println("{ 'status' : 'error', 'message' : 'The comment identifier to like was not valid'}");
+            }else if(dejaApreciat(gasesteComLikeId(strings[3]),
+                    Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))))) {
+                //comentariul este deja apreciat de utilizator
+                System.out.println("{ 'status' : 'error', 'message' : 'The comment identifier to like was not valid'}");
+            } else{
+                System.out.println("{ 'status' : 'ok', 'message' : 'Operation executed successfully'}");
+                Objects.requireNonNull(gasesteComLikeId(strings[3])).like();
+                //creste numarul de like-uri ale comentariului
+                Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).comentariiApreciate
+                        .add(gasesteComLikeId(strings[3]));
+                //adaugam comentariul la lista de comentarii apreciate de utilizator
+                Objects.requireNonNull(gasesteUtilizator(Objects.requireNonNull(gasesteComLikeId(strings[3]))
+                        .getUsername())).cresteNrLikeCom();
+                //crestem numarul de likeuri asociate comentariilor facute de un utilizator
+            }
+        } else if(strings[0].equals("-unlike-comment")) {
+            //1 –unlike-comment -u ‘my_username’ -p ‘my_password’ -comment-id ‘comment_id1'
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No comment identifier to unlike was provided'}");
+            } else if(gasesteComLikeId(strings[3]) == null) {
+                System.out.println("{ 'status' : 'error', 'message'" +
+                        " : 'The comment identifier to unlike was not valid'}");
+            }else if(!dejaApreciat(gasesteComLikeId(strings[3])
+                    , Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))))) {
+                //comentariul nu este apreciat ca utilizatorul sa poata sa isi retraga like-ul
+                System.out.println("{ 'status' : 'error', 'message'" +
+                        " : 'The comment identifier to unlike was not valid'}");
+            } else{
+                System.out.println("{ 'status' : 'ok', 'message' : 'Operation executed successfully'}");
+                Objects.requireNonNull(gasesteComLikeId(strings[3])).unlike();
+                //scad numarul de like-uri asociate comentariului
+                Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).comentariiApreciate
+                        .remove(gasesteComLikeId(strings[3]));
+                //adaugam comentariul la lista de comentarii apreciate de catre utilizatorul respectiv
+                Objects.requireNonNull(gasesteUtilizator(Objects.requireNonNull(gasesteComLikeId(strings[3]))
+                        .getUsername())).scadeNrLikeCom();
+                //scade numarul de likeuri asociate comentariilor facute de un utilizator
+            }
+        }else if(strings[0].equals("-get-followings-posts")) {
+            //lista postari a persoanelor urmarite
+            //{'post_id', 'post_text', 'post_date', 'username'}
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else {
+                String s = "[";
+                Utilizator utilCurent = gasesteUtilizator(extrageUSauP(strings[1]));
+                //retinem utilizatorul care solicita operatia
+                DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                //cream un tip de formatare pentru data la care au fost facute postarile
+                ArrayList<Postare> postariFollowers = new ArrayList<Postare>();
+                //retinem intr-un Array List postarile celor urmariti de utilizatorul curent
+                for(Postare p: postari) {
+                    assert utilCurent != null;
+                    if(utilCurent.utilizatoriUrmariti.contains(gasesteUtilizator(p.getUsername()))) {
+                        postariFollowers.add(p);
+                    }
+                }
+                for(int i = postariFollowers.size() - 1; i >= 0; i--) {
+                    s += "{'post_id' : '" + postariFollowers.get(i).getId() + "', 'post_text' : "
+                            + postariFollowers.get(i).getText() + ", 'post_date' : '"
+                            + dateFormat.format(postariFollowers.get(i).getDate())+ "', 'username' : "
+                            + postariFollowers.get(i).getUsername() + "},";
+                }
+                s = s.substring(0, s.length() - 1);
+                s += "]";
+                System.out.println("{ 'status' : 'ok', 'message' : " + s + "}");
+            }
+        }else if(strings[0].equals("-get-following")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else {
+                String s = "[ ";
+                Utilizator utilCurent = gasesteUtilizator(extrageUSauP(strings[1]));
+                //retinem in utilCurent utilizatorul care a solicitat operatia
+                assert utilCurent != null;
+                for(Utilizator u : utilCurent.utilizatoriUrmariti) {
+                    //afisam datele utilizatorilor aflat in lista de utilizatori urmariti de utilizatorul curent
+                    s += String.format(u.getUsername() + ", ");
+                }
+                s = s.substring(0, s.length() - 2);
+                s += " ]";
+                System.out.println("{'status' : 'ok', 'message' : " + s + "}");
+            }
+        }else if(strings[0].equals("-get-followers")) {
+            //–get-followers -u ‘my_username’ -p 'my_password' -username ‘username1’
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            }else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No username to list followers was provided'}");
+            } else if(gasesteUtilizator(extrageUsername(strings[3])) == null) {
+                System.out.println("{ 'status' : 'error', 'message' : 'The username to list followers was not valid'}");
+            } else {
+                Utilizator userFollowers = gasesteUtilizator(extrageUsername(strings[3]));
+                //utilizatorul la care dorim sa aflam lista de followers
+                String s2 = "[ ";
+                for(Utilizator u : utilizatori) {
+                    for(Utilizator follower : u.utilizatoriUrmariti) {
+                        //pentru fiecare utilizator din sistem, daca utilizatorul curent apare in lista de utilizatori
+                        //urmariti, atunci afisam datele
+                        assert userFollowers != null;
+                        if(follower.getUsername().equals(userFollowers.getUsername())) {
+                            s2 += String.format(u.getUsername() + ", ");
+                        }
+                    }
+                }
+                s2 = s2.substring(0, s2.length() - 2);
+                s2 += " ]";
+                System.out.println("{'status' : 'ok', 'message' : " + s2 + "}");
+            }
+        }else  if(strings[0].equals("-get-user-posts")) {
+            //–get-user-posts -u ‘my_username’ -p 'my_password' -username ‘username1’
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            } else if(strings.length == 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'No username to list posts was provided'}");
+            } else if(gasesteUtilizator(extrageUsername(strings[3])) == null ) {
+                System.out.println("{ 'status' : 'error', 'message' : 'The username to list posts was not valid'}");
+            } else {
+                if(!Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1])))
+                        .utilizatoriUrmariti.contains(gasesteUtilizator(extrageUsername(strings[3])))) {
+                    //nu se pot vedea postarile unui utilizator pe care utilizatorul curent nu il urmareste
+                    System.out.println("{ 'status' : 'error', 'message' : 'The username to list posts was not valid'}");
+                }else {
+                    String s = "[";
+                    DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                    ArrayList<Postare> listaPostari = new ArrayList<Postare>();
+                    //cream o lista de postari a utilizatorului dorit
+                    Utilizator utilizatorCautat = gasesteUtilizator(extrageUsername(strings[3]));
+                    //retinem utilizatorul caruia vrem sa aflam datele postarilor
+                    for(Postare p : postari) {
+                        assert utilizatorCautat != null;
+                        if(p.getUsername().equals(utilizatorCautat.getUsername())) {
+                            //daca gasim o postare in sistem realizata de utilizatorul cautat atunci o adaugam la lista
+                            //de postari
+                            listaPostari.add(p);
+                        }
+                    }
+                    for(int i = listaPostari.size() - 1; i >= 0; i--) {
+                        s += "{'post_id' : '" + listaPostari.get(i).getId() + "', 'post_text' : "
+                                + listaPostari.get(i).getText() + ", 'post_date' : '"
+                                + dateFormat.format(listaPostari.get(i).getDate()) + "'},";
+                    }
+                    s = s.substring(0, s.length() - 1);
+                    s += "]";
+                    System.out.println("{'status' : 'ok', 'message' : " + s + "}");
+                }
+            }
+        }else if(strings[0].equals("-get-most-followed-users")) {
+            //–get-most-followed-users -u ‘my_username’ -p 'my_password'
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            }else {
+                String s = "[";
+                Collections.sort(utilizatori);
+                //sortam lista de utilizatori in ordine descrescatoare dupa numarul de urmaritori
+                for(int i = 0; i < 5; i++) {
+                    s += "{'username' : " + utilizatori.get(i).getUsername() + ", 'number_of_followers' : '"
+                            + utilizatori.get(i).getNrFollowers() + "'},";
+                }
+                s = s.substring(0, s.length() - 1);
+                s += " ]";
+                System.out.println("{'status' : 'ok', 'message' : " + s + "}");
+            }
+        }else if(strings[0].equals("-get-most-liked-posts")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            }else {
+                String s = "[";
+                ArrayList<Postare> copie = new ArrayList<>(postari);
+                //facem o copie a listei de postari din sistem
+                Collections.sort(copie);
+                //sortam lista in ordine descrescatoare dupa numarul de like-uri
+                DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                for(int i = 0; i < copie.size() && i < 5; i++) {
+                    s += "{'post_id' : '" + copie.get(i).getId() + "', 'post_text' : "
+                            + copie.get(i).getText() + ", 'post_date' : '"
+                            + dateFormat.format(copie.get(i).getDate())+ "', 'username' : "
+                            + copie.get(i).getUsername() + ", 'number_of_likes' : '"
+                            + copie.get(i).getNrLikeuri() +  "'},";
+                }
+                s = s.substring(0, s.length() - 1);
+                s += " ]";
+                System.out.println("{'status' : 'ok', 'message' : " + s + "}");
+            }
+        }else if(strings[0].equals("-get-most-commented-posts")) {
+            //–get-most-commented-posts -u ‘my_username’ -p -my_password’
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            }else {
+                ArrayList<Postare> copie = new ArrayList<Postare>(postari);
+                Collections.sort(copie, new Comparator<Postare>(){
+                    //facem o clasa interna anonima in care cream un nou comparator dupa care se va realiza sortarea
+                    //Array List-ului copie
+
+                    @Override
+                    public int compare(Postare o1, Postare o2) {
+                        //comparatia se face astfel incat la final sa putem sorta in ordine descrescatoare dupa numarul
+                        //de like-ri ale postarilor
+                        if(o1.getNrLikeuri() > o2.getNrLikeuri()) {
+                            return -1;
+                        }else if(o1.getNrLikeuri() == o2.getNrLikeuri()) {
+                            return 0;
+                        }
+                        return 1;
+                    }
+                });
+                String s = "[";
+                DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                for(int i = 0; i < copie.size() && i < 5; i++) {
+                    s += "{'post_id' : '" + copie.get(i).getId() + "', 'post_text' : "
+                            + copie.get(i).getText() + ", 'post_date' : '"
+                            + dateFormat.format(copie.get(i).getDate())+ "', 'username' : "
+                            + copie.get(i).getUsername() + ", 'number_of_comments' : '"
+                            + copie.get(i).getNrComentarii() +  "'},";
+                }
+                s = s.substring(0, s.length() - 1);
+                s += "]";
+                System.out.println("{'status' : 'ok', 'message' : " + s + "}");
+            }
+        }else if(strings[0].equals("-get-most-liked-users")) {
+            if(strings.length == 1 || strings.length == 2) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            }else {
+                ArrayList<Utilizator> copie = new ArrayList<Utilizator>(utilizatori);
+                Collections.sort(copie, new Comparator<Utilizator>(){
+                    //sortam Array List-ul copie in ordine descrescatoare dupa suma totala a likeurilor comentariilor si
+                    //postarilor realizate de fiecare utilizator in parte
+
+                    @Override
+                    public int compare(Utilizator o1, Utilizator o2) {
+                        if((o1.getNrLikeuriCom() + o1.getNrLikeuriPost()) > (o2.getNrLikeuriCom() + o2.getNrLikeuriPost())) {
+                            return -1;
+                        }else if((o1.getNrLikeuriCom() + o1.getNrLikeuriPost()) == (o2.getNrLikeuriCom() + o2.getNrLikeuriPost())) {
+                            return 0;
+                        }
+                        return 1;
+                    }
+                });
+                String s = "[";
+                for(int i = 0; i < copie.size() && i < 5; i++) {
+                    int nr_like_total = copie.get(i).getNrLikeuriCom() + copie.get(i).getNrLikeuriPost();
+                    s += "{'username' : " + copie.get(i).getUsername() + ", 'number_of_likes' : '"
+                            + nr_like_total +  "'},";
+                }
+                s = s.substring(0, s.length() - 1);
+                s += "]";
+                System.out.println("{'status' : 'ok', 'message' : " + s + "}");
+
+            }
+        }else if(strings[0].equals("-get-post-details")) {
+            //–get-post-details -u ‘my_username’ -p -my_password’ –post-id ‘post_id1
+            if(strings.length < 3) {
+                System.out.println("{ 'status' : 'error', 'message' : 'You need to be authenticated'}");
+            } else if(gasesteUtilizator(extrageUSauP(strings[1])) == null
+                    || !Objects.requireNonNull(gasesteUtilizator(extrageUSauP(strings[1]))).getParola()
+                    .equals(extrageUSauP(strings[2]))) {
+                System.out.println("{ 'status' : 'error', 'message' : 'Login failed'}");
+            }else if(strings.length == 3){
+                System.out.println("{ 'status' : 'error', 'message' : 'No post identifier was provided'}");
+            } else if(gasestePostLikeId(strings[3]) == null) {
+                System.out.println("{ 'status' : 'error', 'message' : 'The post identifier was not valid'}");
+            } else {
+                String s = "[";
+                String s2 = null;
+                DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                for(Postare p : postari) {
+                    s2 = "[";
+                    s += "{'post_text' : " + p.getText() + ", 'post_date' : '" + dateFormat.format(p.getDate())
+                            + "', 'username' : " + p.getUsername() +", 'number_of_likes' : '" + p.getNrLikeuri() + "', 'comments' : ";
+                    for(Comentariu c : comentarii) {
+                        if(c.getIdPostare() == p.getId()) {
+                            s2 += "{'comment_id' : '" + c.getIdCom() + "', 'comment_text' : " + c.getText() + ", 'comment_date' : '"
+                                    + dateFormat.format(c.getDataComentariu()) + "', 'username' : " + c.getUsername() + ", 'number_of_likes' : '"
+                                    + c.getNrLikeuriComent() + "'},";
+                        }
+                    }
+                    s2 = s2.substring(0, s2.length() - 1);
+                    s2 += "] }";
+                }
+                s += s2;
+                s += "] ";
+                System.out.println("{'status' : 'ok', 'message' : " + s + "}");
+            }
+        }
+
     }
 }
